@@ -2,4 +2,32 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 @import '~bootstrap-sass/assets/stylesheets/bootstrap/_mixins.scss';
 @import '~bootstrap-sass/assets/stylesheets/_bootstrap.scss';
 
-// can add Boostrap overrides, additional Sass/CSS below...
+body {
+  padding: 10px;
+}
+
+h1, h2 {
+  text-align: center;
+}
+#board{
+  margin: 0 auto;
+}
+
+#board td{
+  border: 1px solid #ddd;
+  width: 18px;
+  height: 18px;
+}
+
+td.alive {
+  background-color: #8CC8DD;
+}
+
+td.dead {
+  background-color: #fff;
+}
+
+#control_panel {
+  margin: 10px auto;
+  text-align: center;
+}
