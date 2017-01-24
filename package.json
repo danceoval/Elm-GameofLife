@@ -1,13 +1,9 @@
 {
-  "name": "elm-webpack-starter",
-  "description": "Webpack setup for writing Elm apps",
+  "name": "elm-GoL",
+  "description": "Game of Life in Elm",
   "version": "0.8.4",
   "license": "MIT",
-  "author": "Peter Morawiec",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/moarwick/elm-webpack-starter"
-  },
+  "author": "DAS",
   "scripts": {
     "start": "webpack-dev-server --hot --inline",
     "build": "rimraf dist && webpack && mv dist/*.eot dist/static/css/ && mv dist/*.woff* dist/static/css/ && mv dist/*.svg dist/static/css/ && mv dist/*.ttf dist/static/css/",
