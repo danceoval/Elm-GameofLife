@@ -4,12 +4,13 @@ import Html.Attributes exposing (..)
 import Html.Events exposing ( onClick )
 import Array exposing (..)
 import Debug exposing (log)
+import Time  exposing (Time, millisecond)
 
 
 -- APP
 main : Program Never Model Msg
 main =
-  Html.beginnerProgram { model = model, view = view, update = update }
+  Html.program { init = init, view = view, update = update, subscriptions = subscriptions }
 
 
 -- MODEL
@@ -21,18 +22,26 @@ type alias Point = {
 }
 
 type alias Model = {
- points : Array Point
+ points : Array Point,
+ isPlaying : Bool
 }
 
-model : Model
-model = {
+init : (Model, Cmd Msg)
+init = ({
+  isPlaying = False,
   points = Array.initialize 64 (\idx -> {
       index = idx,
       x = idx % 8,
       y = (idx // 8) % 8,
       status = 0
     })
-  }
+  }, Cmd.none)
+
+-- SUBSCRIPTIONS
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Time.every (500 * millisecond) Tick
 
 -- UTILS
 getStatus: Point -> String
@@ -95,9 +104,11 @@ countAndChange point mod =
 -- UPDATE
 type Msg = ToggleCell Int 
           | Step
+          | Tick Time
+          | TogglePlay
           | NoOp
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     ToggleCell idx ->
@@ -110,16 +121,27 @@ update msg model =
         newPoints = 
           Array.set idx {point | status = newStatus } model.points  
       in
-        {model | points = newPoints}
+        ({model | points = newPoints}, Cmd.none)
     Step ->
       let
         newPoints =
           Array.map (\point -> {point | status = (countAndChange point model)}) model.points
       in
-        {model | points = newPoints}        
-    NoOp -> model
+        ({model | points = newPoints}, Cmd.none)
+    Tick newTime ->
+      if (model.isPlaying) then
+        let
+          newPoints =
+            Array.map (\point -> {point | status = (countAndChange point model)}) model.points
+        in
+          ({model | points = newPoints}, Cmd.none)
+      else
+        (model, Cmd.none)     
+    TogglePlay ->
+      ({model | isPlaying = (not model.isPlaying)}, Cmd.none)      
+    NoOp -> (model, Cmd.none)
 
-
+-- VIEW
 view : Model -> Html Msg
 view model =
   div [ class "container", style [("margin-top", "30px"), ( "text-align", "center" )] ][    -- inline CSS (literal)
@@ -146,7 +168,7 @@ view model =
     ],
     div [id "control_panel"] [
       button [id "step_btn", classList [("btn", True), ("btn-success", True)], onClick Step] [text "Step"],
-      button [id "play_btn", classList [("btn", True), ("btn-primary", True)]] [text "Play"],
+      button [id "play_btn", classList [("btn", True), ("btn-primary", True)], onClick TogglePlay] [text "Play"],
       button [id "reset_btn", classList [("btn", True), ("btn-warning", True)]] [text "Reset"],
       button [id "clear_btn", classList [("btn", True), ("btn-info", True)]] [text "Clear"]
     ]
