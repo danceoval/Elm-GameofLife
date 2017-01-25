@@ -17,7 +17,7 @@ type alias Point = {
   index : Int,
   x : Int,
   y : Int,
-  status : Bool
+  status : Int
 }
 
 type alias Model = {
@@ -30,14 +30,14 @@ model = {
       index = idx,
       x = idx % 8,
       y = (idx // 8) % 8,
-      status = False
+      status = 0
     })
   }
 
 -- UTILS
 getStatus: Point -> String
 getStatus point =
-  if point.status == True then
+  if point.status == 1 then
     "alive"
   else
     "dead"  
@@ -47,8 +47,26 @@ placeholder = {
     x = 0,
     y = 0,
     index = 0,
-    status = False
+    status = 0
   }
+
+getByCoords: Int -> Int -> Point -> Bool
+getByCoords x y point =
+  point.x == x && point.y == y
+
+--countAndChange: Point -> Model -> String
+--countAndChange point mod =
+--  let
+--    upL = .status (Array.get 0 (Array.filter(\point -> (getByCoords (point.x - 1) (point.y -1) point)) mod.points))
+--    upC = Array.get 0 (Array.filter(\point -> (getByCoords point.x (point.y - 1) point)) mod.points)
+--    upR = Array.get 0 (Array.filter(\point -> (getByCoords (point.x + 1) (point.y - 1) point)) mod.points)
+--    left = Array.get 0 (Array.filter(\point -> (getByCoords (point.x - 1) point.y point)) mod.points)
+--    right = Array.get 0 (Array.filter(\point -> (getByCoords (point.x + 1) point.y point)) mod.points)
+--    downL = Array.get 0 (Array.filter(\point -> (getByCoords (point.x - 1) (point.y + 1) point)) mod.points)
+--    downC = Array.get 0 (Array.filter(\point -> (getByCoords point.x (point.y + 1) point)) mod.points)
+--    downR = Array.get 0 (Array.filter(\point -> (getByCoords (point.x + 1) (point.y + 1) point)) mod.points)
+--  in  
+
 
 -- UPDATE
 type Msg = ToggleCell Int 
@@ -61,8 +79,11 @@ update msg model =
       let 
         point = 
           Maybe.withDefault placeholder (Array.get idx model.points)
+        newStatus = 
+          if point.status == 0 then 1
+          else 0  
         newPoints = 
-          Array.set idx {point | status = (not point.status) } model.points  
+          Array.set idx {point | status = newStatus } model.points  
       in
         {model | points = newPoints}
     NoOp -> model
