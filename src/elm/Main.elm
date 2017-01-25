@@ -3,7 +3,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing ( onClick )
 import Array exposing (..)
-
+import Debug exposing (log)
 
 
 -- APP
@@ -50,26 +50,51 @@ placeholder = {
     status = 0
   }
 
-getByCoords: Int -> Int -> Point -> Bool
-getByCoords x y point =
-  point.x == x && point.y == y
+getStatusByCoords: Int -> Int -> Array Point -> Int
+getStatusByCoords x y points = 
+  let coord = Maybe.withDefault placeholder (Array.get 0 (Array.filter (\p -> (p.x == x && p.y == y)) points))
+  in
+    .status coord 
 
---countAndChange: Point -> Model -> String
---countAndChange point mod =
---  let
---    upL = .status (Array.get 0 (Array.filter(\point -> (getByCoords (point.x - 1) (point.y -1) point)) mod.points))
---    upC = Array.get 0 (Array.filter(\point -> (getByCoords point.x (point.y - 1) point)) mod.points)
---    upR = Array.get 0 (Array.filter(\point -> (getByCoords (point.x + 1) (point.y - 1) point)) mod.points)
---    left = Array.get 0 (Array.filter(\point -> (getByCoords (point.x - 1) point.y point)) mod.points)
---    right = Array.get 0 (Array.filter(\point -> (getByCoords (point.x + 1) point.y point)) mod.points)
---    downL = Array.get 0 (Array.filter(\point -> (getByCoords (point.x - 1) (point.y + 1) point)) mod.points)
---    downC = Array.get 0 (Array.filter(\point -> (getByCoords point.x (point.y + 1) point)) mod.points)
---    downR = Array.get 0 (Array.filter(\point -> (getByCoords (point.x + 1) (point.y + 1) point)) mod.points)
---  in  
-
-
+countAndChange: Point -> Model -> Int
+countAndChange point mod =
+  let 
+    upL = if (point.y > 0) then 
+            getStatusByCoords (point.x - 1) (point.y - 1) mod.points
+          else 0 
+    upC = if (point.y > 0) then 
+            getStatusByCoords point.x  (point.y - 1) mod.points
+          else 0
+    upR = if (point.y > 0) then 
+            getStatusByCoords (point.x + 1) (point.y - 1) mod.points
+          else 0  
+    downL = if (point.y < 7 ) then 
+              getStatusByCoords (point.x - 1) (point.y + 1) mod.points
+            else 0
+    downC = if (point.y < 7) then 
+              getStatusByCoords point.x  (point.y + 1) mod.points
+            else 0  
+    downR = if (point.y < 7) then 
+              getStatusByCoords (point.x + 1) (point.y + 1) mod.points
+            else 0
+    left = if (point.x > 0) then 
+            getStatusByCoords (point.x - 1) point.y  mod.points
+          else 0 
+    right = if (point.x < 7) then 
+              getStatusByCoords (point.x + 1) point.y mod.points
+            else 0
+    total = upL + upC + upR + left + right + downL + downC + downR         
+  in                        
+    if point.status == 1 then
+      if (total == 2 || total == 3) then 1 --alive
+      else 0 --dead
+    else 
+      if total == 3 then 1
+      else 0
+    
 -- UPDATE
 type Msg = ToggleCell Int 
+          | Step
           | NoOp
 
 update : Msg -> Model -> Model
@@ -86,6 +111,12 @@ update msg model =
           Array.set idx {point | status = newStatus } model.points  
       in
         {model | points = newPoints}
+    Step ->
+      let
+        newPoints =
+          Array.map (\point -> {point | status = (countAndChange point model)}) model.points
+      in
+        {model | points = newPoints}        
     NoOp -> model
 
 
@@ -114,7 +145,7 @@ view model =
       ]
     ],
     div [id "control_panel"] [
-      button [id "step_btn", classList [("btn", True), ("btn-success", True)]] [text "Step"],
+      button [id "step_btn", classList [("btn", True), ("btn-success", True)], onClick Step] [text "Step"],
       button [id "play_btn", classList [("btn", True), ("btn-primary", True)]] [text "Play"],
       button [id "reset_btn", classList [("btn", True), ("btn-warning", True)]] [text "Reset"],
       button [id "clear_btn", classList [("btn", True), ("btn-info", True)]] [text "Clear"]
