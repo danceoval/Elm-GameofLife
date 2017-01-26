@@ -7,6 +7,9 @@ import Debug exposing (log)
 import Time  exposing (Time, millisecond)
 import Random exposing (..)
 
+gridSize : Int
+gridSize = 25 -- SET SIZE 
+
 -- APP
 main : Program Never Model Msg
 main =
@@ -27,9 +30,6 @@ type alias Model = {
   isPlaying : Bool
 }
 
-gridSize : Int
-gridSize = 25 -- SET SIZE 
-
 init : (Model, Cmd Msg)
 init = ({
   size = gridSize,
@@ -42,11 +42,14 @@ init = ({
     })
   }, Cmd.none)
 
--- SUBSCRIPTIONS
+placeholder : Point
+placeholder = {
+    x = 0,
+    y = 0,
+    index = 0,
+    status = 0
+  }
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  Time.every (100 * millisecond) Tick
 
 -- UTILS
 getStatus: Point -> String
@@ -56,13 +59,10 @@ getStatus point =
   else
     "dead"  
 
-placeholder : Point
-placeholder = {
-    x = 0,
-    y = 0,
-    index = 0,
-    status = 0
-  }
+setNewPoints: Model -> Array Point
+setNewPoints model = 
+  Array.map (\point -> {point | status = (countAndChange point model)}) model.points
+
 
 mapRows : Int -> Array Point -> List (Html Msg)
 mapRows idx points =
@@ -124,18 +124,10 @@ update msg model =
       in
         ({model | points = newPoints}, Cmd.none)
     Step ->
-      let
-        newPoints =
-          Array.map (\point -> {point | status = (countAndChange point model)}) model.points
-      in
-        ({model | isPlaying = False, points = newPoints}, Cmd.none)
+      ({model | isPlaying = False, points = (setNewPoints model)}, Cmd.none)
     Tick newTime ->
       if (model.isPlaying) then
-        let
-          newPoints =
-            Array.map (\point -> {point | status = (countAndChange point model)}) model.points
-        in
-          ({model | points = newPoints}, Cmd.none)
+        ({model | points = (setNewPoints model)}, Cmd.none)
       else
         (model, Cmd.none)     
     TogglePlay ->
@@ -168,4 +160,10 @@ view model =
       tbody [] (mapRows model.size model.points)
     ]
   ]
+
+-- SUBSCRIPTIONS
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Time.every (100 * millisecond) Tick
+
 
