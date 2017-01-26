@@ -22,17 +22,22 @@ type alias Point = {
 }
 
 type alias Model = {
- points : Array Point,
- isPlaying : Bool
+  size : Int,
+  points : Array Point,
+  isPlaying : Bool
 }
+
+gridSize : Int
+gridSize = 25 -- SET SIZE 
 
 init : (Model, Cmd Msg)
 init = ({
+  size = gridSize,
   isPlaying = False,
-  points = Array.initialize 144 (\idx -> {
+  points = Array.initialize (gridSize * gridSize) (\idx -> {
       index = idx,
-      x = idx % 12,
-      y = (idx // 12) % 12,
+      x = idx % gridSize,
+      y = (idx // gridSize) % gridSize,
       status = 0
     })
   }, Cmd.none)
@@ -59,6 +64,15 @@ placeholder = {
     status = 0
   }
 
+mapRows : Int -> Array Point -> List (Html Msg)
+mapRows idx points =
+  if idx < 0 then
+    []
+  else
+    List.singleton (tr [] 
+      (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice (gridSize * (idx - 1)) (gridSize * idx) points))))
+    ++ (mapRows (idx - 1) points)
+
 getStatusByCoords: Int -> Int -> Array Point -> Int
 getStatusByCoords x y points = 
   let coord = Maybe.withDefault placeholder (Array.get 0 (Array.filter (\p -> (p.x == x && p.y == y)) points))
@@ -77,19 +91,19 @@ countAndChange point mod =
     upR = if (point.y > 0) then 
             getStatusByCoords (point.x + 1) (point.y - 1) mod.points
           else 0  
-    downL = if (point.y < 11 ) then 
+    downL = if (point.y < (mod.size - 1) ) then 
               getStatusByCoords (point.x - 1) (point.y + 1) mod.points
             else 0
-    downC = if (point.y < 11) then 
+    downC = if (point.y < (mod.size - 1)) then 
               getStatusByCoords point.x  (point.y + 1) mod.points
             else 0  
-    downR = if (point.y < 11) then 
+    downR = if (point.y < (mod.size - 1)) then 
               getStatusByCoords (point.x + 1) (point.y + 1) mod.points
             else 0
     left = if (point.x > 0) then 
             getStatusByCoords (point.x - 1) point.y  mod.points
           else 0 
-    right = if (point.x < 11) then 
+    right = if (point.x < (mod.size - 1)) then 
               getStatusByCoords (point.x + 1) point.y mod.points
             else 0
     total = upL + upC + upR + left + right + downL + downC + downR         
@@ -130,7 +144,7 @@ update msg model =
         newPoints =
           Array.map (\point -> {point | status = (countAndChange point model)}) model.points
       in
-        ({model | points = newPoints}, Cmd.none)
+        ({model | isPlaying = False, points = newPoints}, Cmd.none)
     Tick newTime ->
       if (model.isPlaying) then
         let
@@ -150,7 +164,7 @@ update msg model =
       in
         ({ model | points = newPoints } ,Cmd.none)
     Reset -> 
-        (model, Random.generate NewBoard (Random.list 144 (Random.int 0 1 ) ) )
+        (model, Random.generate NewBoard (Random.list (model.size * model.size) (Random.int 0 1 ) ) )
     Clear ->
       ({model | isPlaying = False, points = ( Array.map (\point -> {point | status = 0}) model.points ) }, Cmd.none)      
     NoOp -> (model, Cmd.none)
@@ -161,31 +175,7 @@ view model =
   div [ class "container", style [("margin-top", "30px"), ( "text-align", "center" )] ][    -- inline CSS (literal)
     h1 [] [text "Game of Life"],
     table [id "board"] [
-      tbody [] [
-        tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 0 12 model.points))),
-        tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 12 24 model.points))),
-        tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 24 36 model.points))),
-        tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 36 48 model.points))),
-        tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 48 60 model.points))),
-        tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 72 84 model.points))),
-        tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 84 96 model.points))),
-        tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 96 108 model.points))),
-                  tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 108 120 model.points))),
-                  tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 120 132 model.points))),
-                  tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 132 144 model.points)))
-
-      ]
+      tbody [] (mapRows model.size model.points)
     ],
     div [id "control_panel"] [
       button [id "step_btn", classList [("btn", True), ("btn-success", True)], onClick Step] [text "Step"],
