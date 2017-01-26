@@ -5,7 +5,7 @@ import Html.Events exposing ( onClick )
 import Array exposing (..)
 import Debug exposing (log)
 import Time  exposing (Time, millisecond)
-
+import Random exposing (..)
 
 -- APP
 main : Program Never Model Msg
@@ -106,6 +106,9 @@ type Msg = ToggleCell Int
           | Step
           | Tick Time
           | TogglePlay
+          | NewBoard (List Int) 
+          | Reset 
+          | Clear 
           | NoOp
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -138,7 +141,20 @@ update msg model =
       else
         (model, Cmd.none)     
     TogglePlay ->
-      ({model | isPlaying = (not model.isPlaying)}, Cmd.none)      
+      ({model | isPlaying = (not model.isPlaying)}, Cmd.none)  
+    NewBoard newBoard -> 
+      --log "board" newBoard
+
+      let 
+        statusArray = Array.fromList newBoard
+        newPoints = 
+          Array.map (\point -> { point | status = Maybe.withDefault 0 (Array.get (point.index) statusArray ) } ) model.points
+      in
+        ({ model | points = newPoints } ,Cmd.none)
+    Reset -> 
+        (model, Random.generate NewBoard (Random.list 64 (Random.int 0 1 ) ) )
+    Clear ->
+      ({model | isPlaying = False, points = ( Array.map (\point -> {point | status = 0}) model.points ) }, Cmd.none)      
     NoOp -> (model, Cmd.none)
 
 -- VIEW
@@ -169,8 +185,8 @@ view model =
     div [id "control_panel"] [
       button [id "step_btn", classList [("btn", True), ("btn-success", True)], onClick Step] [text "Step"],
       button [id "play_btn", classList [("btn", True), ("btn-primary", True)], onClick TogglePlay] [text "Play"],
-      button [id "reset_btn", classList [("btn", True), ("btn-warning", True)]] [text "Reset"],
-      button [id "clear_btn", classList [("btn", True), ("btn-info", True)]] [text "Clear"]
+      button [id "reset_btn", classList [("btn", True), ("btn-warning", True)], onClick Reset] [text "Reset"],
+      button [id "clear_btn", classList [("btn", True), ("btn-info", True)], onClick Clear] [text "Clear"]
     ]
   ]
 
