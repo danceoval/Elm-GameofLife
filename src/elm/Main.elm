@@ -29,10 +29,10 @@ type alias Model = {
 init : (Model, Cmd Msg)
 init = ({
   isPlaying = False,
-  points = Array.initialize 64 (\idx -> {
+  points = Array.initialize 144 (\idx -> {
       index = idx,
-      x = idx % 8,
-      y = (idx // 8) % 8,
+      x = idx % 12,
+      y = (idx // 12) % 12,
       status = 0
     })
   }, Cmd.none)
@@ -77,19 +77,19 @@ countAndChange point mod =
     upR = if (point.y > 0) then 
             getStatusByCoords (point.x + 1) (point.y - 1) mod.points
           else 0  
-    downL = if (point.y < 7 ) then 
+    downL = if (point.y < 11 ) then 
               getStatusByCoords (point.x - 1) (point.y + 1) mod.points
             else 0
-    downC = if (point.y < 7) then 
+    downC = if (point.y < 11) then 
               getStatusByCoords point.x  (point.y + 1) mod.points
             else 0  
-    downR = if (point.y < 7) then 
+    downR = if (point.y < 11) then 
               getStatusByCoords (point.x + 1) (point.y + 1) mod.points
             else 0
     left = if (point.x > 0) then 
             getStatusByCoords (point.x - 1) point.y  mod.points
           else 0 
-    right = if (point.x < 7) then 
+    right = if (point.x < 11) then 
               getStatusByCoords (point.x + 1) point.y mod.points
             else 0
     total = upL + upC + upR + left + right + downL + downC + downR         
@@ -143,8 +143,6 @@ update msg model =
     TogglePlay ->
       ({model | isPlaying = (not model.isPlaying)}, Cmd.none)  
     NewBoard newBoard -> 
-      --log "board" newBoard
-
       let 
         statusArray = Array.fromList newBoard
         newPoints = 
@@ -152,7 +150,7 @@ update msg model =
       in
         ({ model | points = newPoints } ,Cmd.none)
     Reset -> 
-        (model, Random.generate NewBoard (Random.list 64 (Random.int 0 1 ) ) )
+        (model, Random.generate NewBoard (Random.list 144 (Random.int 0 1 ) ) )
     Clear ->
       ({model | isPlaying = False, points = ( Array.map (\point -> {point | status = 0}) model.points ) }, Cmd.none)      
     NoOp -> (model, Cmd.none)
@@ -165,21 +163,28 @@ view model =
     table [id "board"] [
       tbody [] [
         tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 0 8 model.points))),
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 0 12 model.points))),
         tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 8 16 model.points))),
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 12 24 model.points))),
         tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 16 24 model.points))),
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 24 36 model.points))),
         tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 24 32 model.points))),
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 36 48 model.points))),
         tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 32 40 model.points))),
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 48 60 model.points))),
         tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 40 48 model.points))),
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 72 84 model.points))),
         tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 48 56 model.points))),
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 84 96 model.points))),
         tr [] 
-          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 56 64 model.points)))      
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 96 108 model.points))),
+                  tr [] 
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 108 120 model.points))),
+                  tr [] 
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 120 132 model.points))),
+                  tr [] 
+          (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice 132 144 model.points)))
+
       ]
     ],
     div [id "control_panel"] [
