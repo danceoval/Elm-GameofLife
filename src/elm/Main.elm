@@ -46,7 +46,7 @@ init = ({
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Time.every (500 * millisecond) Tick
+  Time.every (100 * millisecond) Tick
 
 -- UTILS
 getStatus: Point -> String
@@ -68,7 +68,7 @@ mapRows : Int -> Array Point -> List (Html Msg)
 mapRows idx points =
   if idx < 0 then
     []
-  else
+  else -- Recursive case, generate tr with tds mapped to points in slice of points array
     List.singleton (tr [] 
       (List.map(\point -> td [class (getStatus point), onClick (ToggleCell point.index)] [] ) (Array.toList (Array.slice (gridSize * (idx - 1)) (gridSize * idx) points))))
     ++ (mapRows (idx - 1) points)
@@ -174,14 +174,14 @@ view : Model -> Html Msg
 view model =
   div [ class "container", style [("margin-top", "30px"), ( "text-align", "center" )] ][    -- inline CSS (literal)
     h1 [] [text "Game of Life"],
-    table [id "board"] [
-      tbody [] (mapRows model.size model.points)
-    ],
     div [id "control_panel"] [
       button [id "step_btn", classList [("btn", True), ("btn-success", True)], onClick Step] [text "Step"],
       button [id "play_btn", classList [("btn", True), ("btn-primary", True)], onClick TogglePlay] [text "Play"],
       button [id "reset_btn", classList [("btn", True), ("btn-warning", True)], onClick Reset] [text "Reset"],
       button [id "clear_btn", classList [("btn", True), ("btn-info", True)], onClick Clear] [text "Clear"]
+    ],
+    table [id "board"] [
+      tbody [] (mapRows model.size model.points)
     ]
   ]
 
