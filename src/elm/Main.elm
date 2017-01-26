@@ -82,30 +82,14 @@ getStatusByCoords x y points =
 countAndChange: Point -> Model -> Int
 countAndChange point mod =
   let 
-    upL = if (point.y > 0) then 
-            getStatusByCoords (point.x - 1) (point.y - 1) mod.points
-          else 0 
-    upC = if (point.y > 0) then 
-            getStatusByCoords point.x  (point.y - 1) mod.points
-          else 0
-    upR = if (point.y > 0) then 
-            getStatusByCoords (point.x + 1) (point.y - 1) mod.points
-          else 0  
-    downL = if (point.y < (mod.size - 1) ) then 
-              getStatusByCoords (point.x - 1) (point.y + 1) mod.points
-            else 0
-    downC = if (point.y < (mod.size - 1)) then 
-              getStatusByCoords point.x  (point.y + 1) mod.points
-            else 0  
-    downR = if (point.y < (mod.size - 1)) then 
-              getStatusByCoords (point.x + 1) (point.y + 1) mod.points
-            else 0
-    left = if (point.x > 0) then 
-            getStatusByCoords (point.x - 1) point.y  mod.points
-          else 0 
-    right = if (point.x < (mod.size - 1)) then 
-              getStatusByCoords (point.x + 1) point.y mod.points
-            else 0
+    upL = getStatusByCoords (point.x - 1) (point.y - 1) mod.points 
+    upC = getStatusByCoords point.x  (point.y - 1) mod.points
+    upR = getStatusByCoords (point.x + 1) (point.y - 1) mod.points 
+    downL = getStatusByCoords (point.x - 1) (point.y + 1) mod.points
+    downC = getStatusByCoords point.x  (point.y + 1) mod.points  
+    downR = getStatusByCoords (point.x + 1) (point.y + 1) mod.points
+    left = getStatusByCoords (point.x - 1) point.y  mod.points
+    right = getStatusByCoords (point.x + 1) point.y mod.points
     total = upL + upC + upR + left + right + downL + downC + downR         
   in                        
     if point.status == 1 then
